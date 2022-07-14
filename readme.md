@@ -43,4 +43,8 @@ podman build -t app .
 podman run -it --rm -p 8080:8080 app
 
 curl -fsSL http://localhost:8080/actuator/health | jq .
+
+podman push app docker-archive:app.tar
+
+skopeo inspect docker-archive:app.tar | jq
 ```
