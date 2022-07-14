@@ -38,7 +38,7 @@ HEALTHCHECK --start-period=1s --timeout=10s --interval=10s \
 EOF
 ```
 ```
-podman build -t app .
+podman build --format=docker -t app .
 
 podman run -it --rm -p 8080:8080 app
 
