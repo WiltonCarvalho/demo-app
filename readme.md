@@ -32,6 +32,9 @@ WORKDIR /app
 COPY --from=builder /code/build/libs/*.jar app.jar
 USER 1000:0
 ENTRYPOINT [ "java", "-jar", "app.jar" ]
+EXPOSE 8080
+HEALTHCHECK --start-period=1s --timeout=10s --interval=10s \
+    CMD curl -fsSL -H 'User-Agent: HealthCheck' http://127.0.0.1:8080/actuator/health
 EOF
 ```
 ```
