@@ -36,29 +36,40 @@ public class Hello {
 EOF
 ```
 ```
+podman run -it --rm --name builder \
+  -v $PWD:/workspace \
+  -w /workspace \
+  -v /tmp:/tmp \
+  -e GRADLE_USER_HOME=/tmp/build_cache/gradle \
+  public.ecr.aws/docker/library/openjdk:11-jdk \
+  sh -c './gradlew build --project-cache-dir /tmp/build_cache/gradle'
+```
+```
 cat <<'EOF'> Dockerfile
-FROM docker.io/library/openjdk:11-jdk AS builder
-WORKDIR /code
-COPY . .
-RUN set -ex \
-    && dpkg --print-architecture \
-    && ./gradlew build -i
+FROM public.ecr.aws/docker/library/openjdk:11-jdk AS builder
+WORKDIR workspace
+ARG JAR_FILE=build/libs/*.jar
+#ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+RUN java -Djarmode=layertools -jar app.jar extract
 
-FROM docker.io/library/openjdk:11-jre AS final
-WORKDIR /app
-COPY --from=builder /code/build/libs/*.jar app.jar
-USER 1000:0
-ENTRYPOINT [ "java", "-jar", "app.jar" ]
-EXPOSE 8080
-HEALTHCHECK --start-period=1s --timeout=10s --interval=10s \
-    CMD curl -fsSL -H 'User-Agent: HealthCheck' http://127.0.0.1:8080/actuator/health
+FROM gcr.io/distroless/java:11
+#FROM public.ecr.aws/docker/library/openjdk:11-jre
+USER 999:0
+WORKDIR workspace
+COPY --from=builder workspace/dependencies/ ./
+COPY --from=builder workspace/spring-boot-loader/ ./
+COPY --from=builder workspace/snapshot-dependencies/ ./
+COPY --from=builder workspace/application/ ./
+ENTRYPOINT ["/usr/bin/java", "org.springframework.boot.loader.JarLauncher"]
 EOF
 ```
 ```
-podman build --format=docker -t app .
+podman build -t app . --timestamp=0
 
 podman run -it --rm -p 8080:8080 app
 
+curl -fsSL http://localhost:8080
 curl -fsSL http://localhost:8080/actuator/health | jq .
 
 podman push app docker-archive:app.tar
