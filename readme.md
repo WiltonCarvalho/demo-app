@@ -42,7 +42,7 @@ podman run -it --rm --name builder \
   -v /tmp:/tmp \
   -e GRADLE_USER_HOME=/tmp/build_cache/gradle \
   public.ecr.aws/docker/library/openjdk:11-jdk \
-  sh -c './gradlew build --project-cache-dir /tmp/build_cache/gradle'
+  sh -c './gradlew build'
 ```
 ```
 cat <<'EOF'> Dockerfile
