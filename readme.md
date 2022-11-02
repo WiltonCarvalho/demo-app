@@ -20,6 +20,22 @@ curl -fsSL https://start.spring.io/starter.tgz \
 cd demo-app
 ```
 ```
+cat <<'EOF'> src/main/java/com/example/Hello.java
+package com.example;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class Hello {
+	@GetMapping("/")
+	public String index() {
+		return "Hello from Spring Boot!";
+	}
+}
+EOF
+```
+```
 cat <<'EOF'> Dockerfile
 FROM docker.io/library/openjdk:11-jdk AS builder
 WORKDIR /code
