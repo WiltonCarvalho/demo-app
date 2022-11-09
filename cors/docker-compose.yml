@@ -1,0 +1,7 @@
+services:
+  front:
+    image: public.ecr.aws/docker/library/nginx:stable
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+    ports:
+      - 80:80

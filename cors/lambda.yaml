@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: ''
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: DescribeRulesPolicy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action:
+            - elasticloadbalancing:DescribeRules
+            Resource: "*"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: !Ref AWS::StackName
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              response = {
+                  "statusCode": 200,
+                  "headers": {
+                  "Content-Type": "text/plain;"
+                  },
+                  "isBase64Encoded": False
+              }
+              response['body'] = json.dumps(event)
+              return response
+      Runtime: python3.8
+      Timeout: 30
