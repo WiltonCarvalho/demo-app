@@ -58,6 +58,37 @@ public class WebConfig implements WebMvcConfigurer {
 EOF
 ```
 ```
+cat <<'EOF'>> build.gradle
+def buildTime() {
+  final dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ")
+  dateFormat.timeZone = TimeZone.getTimeZone('America/Sao_Paulo')
+  dateFormat.format(new Date())
+}
+def gitAuthor = 'git show -q --format=%an'.execute().text.trim()
+def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
+springBoot {
+  buildInfo {
+    properties {
+      name = null
+      group = null
+      time = null
+      additional = [
+        'author': gitAuthor,
+        'revision': gitCommitHash,
+        'buildTime': buildTime()
+      ]
+    }
+  }
+}
+EOF
+```
+```
+cat <<'EOF'> src/main/resources/application.properties
+server.port=8080
+management.endpoints.web.exposure.include=info,health,prometheus
+EOF
+```
+```
 podman run -it --rm --name builder \
   -v $PWD:/workspace \
   -w /workspace \
