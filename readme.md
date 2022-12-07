@@ -90,6 +90,14 @@ management.endpoints.web.exposure.include=info,health,prometheus
 EOF
 ```
 ```
+// build.gradle - Json Logs
+// implementation 'ch.qos.logback:logback-classic:1.2.6'
+// implementation 'ch.qos.logback.contrib:logback-json-classic:0.1.5'
+// implementation 'ch.qos.logback.contrib:logback-jackson:0.1.5'
+// implementation 'com.fasterxml.jackson.core:jackson-core:2.12.0'
+// implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.0'
+// implementation 'org.slf4j:slf4j-api:1.7.25'
+
 cat <<'EOF'> src/main/resources/logback.xml
 <configuration>
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
