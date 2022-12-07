@@ -9,6 +9,7 @@ del demo-app.tar.gz
 ```
 curl -fsSL https://start.spring.io/starter.tgz \
   -d dependencies=web,actuator,prometheus \
+  -d bootVersion=2.7.6 \
   -d javaVersion=11 \
   -d packageName=com.example \
   -d groupId=com.example \
