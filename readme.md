@@ -90,6 +90,28 @@ management.endpoints.web.exposure.include=info,health,prometheus
 EOF
 ```
 ```
+cat <<'EOF'> src/main/resources/logback.xml
+<configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date [%thread] %-5level %logger - %msg%n</pattern>
+        </encoder>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampFormat>
+                <timestampFormatTimezoneId>Etc/UTC</timestampFormatTimezoneId>
+                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter"/>
+                <appendLineSeparator>true</appendLineSeparator>
+            </layout>
+        </encoder>
+    </appender>
+    <root level="info">
+        <appender-ref ref="stdout"/>
+    </root>
+</configuration>
+EOF
+```
+```
 podman run -it --rm --name builder \
   -v $PWD:/workspace \
   -w /workspace \
