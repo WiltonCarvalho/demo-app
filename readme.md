@@ -21,6 +21,7 @@ curl -fsSL https://start.spring.io/starter.tgz \
 cd demo-app
 ```
 ```
+# Hello
 cat <<'EOF'> src/main/java/com/example/Hello.java
 package com.example;
 
@@ -37,6 +38,7 @@ public class Hello {
 EOF
 ```
 ```
+# CORS
 cat <<'EOF'> src/main/java/com/example/WebConfig.java
 package com.example;
 
@@ -59,6 +61,7 @@ public class WebConfig implements WebMvcConfigurer {
 EOF
 ```
 ```
+# Build Info
 cat <<'EOF'>> build.gradle
 def buildTime() {
   final dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ")
@@ -90,7 +93,7 @@ management.endpoints.web.exposure.include=info,health,prometheus
 EOF
 ```
 ```
-// build.gradle - Json Logs
+# Json Logs
 // implementation 'ch.qos.logback:logback-classic:1.2.6'
 // implementation 'ch.qos.logback.contrib:logback-json-classic:0.1.5'
 // implementation 'ch.qos.logback.contrib:logback-jackson:0.1.5'
