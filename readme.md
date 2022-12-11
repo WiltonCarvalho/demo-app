@@ -61,6 +61,17 @@ public class WebConfig implements WebMvcConfigurer {
 EOF
 ```
 ```
+# Disable '*-plain.jar'
+cat <<'EOF'>> build.gradle
+jar {
+  enabled = false
+}
+bootJar {
+  enabled = true
+}
+EOF
+```
+```
 # Build Info
 cat <<'EOF'>> build.gradle
 def buildTime() {
