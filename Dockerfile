@@ -1,7 +1,6 @@
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:11 AS builder
+FROM alpine AS builder
 WORKDIR workspace
-COPY . .
-RUN ./gradlew build && cp build/libs/*.jar /mnt
+RUN touch test.txt && cp test.txt /mnt
 
 FROM scratch
 COPY --from=builder /mnt ./
