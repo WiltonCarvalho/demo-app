@@ -1,18 +1,7 @@
-curl -fsSL https://start.spring.io/starter.tgz \
-  -d dependencies=web,actuator,prometheus \
-  -d bootVersion=2.7.6 \
-  -d javaVersion=11 \
-  -d packageName=com.example \
-  -d groupId=com.example \
-  -d artifactId=demo-app \
-  -d baseDir=demo-app \
-  -d type=gradle-project | tar -xzvf -
-
 cat <<'EOF'> Dockerfile
-FROM public.ecr.aws/amazoncorretto/amazoncorretto:11 AS builder
+FROM alpine AS builder
 WORKDIR workspace
-COPY . .
-RUN ./gradlew build && cp build/libs/*.jar /mnt
+RUN touch test.txt && cp test.txt /mnt
 
 FROM scratch
 COPY --from=builder /mnt ./
