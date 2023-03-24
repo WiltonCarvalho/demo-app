@@ -7,5 +7,5 @@ FROM scratch
 COPY --from=builder /mnt ./
 EOF
 
-docker build --platform=local -o . ./demo-app -f ./Dockerfile --progress=plain
+docker build --platform=local -o . ./ -f ./Dockerfile --progress=plain
 docker build --platform=local -o . github.com/WiltonCarvalho/demo-app#main --progress=plain
