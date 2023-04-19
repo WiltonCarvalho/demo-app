@@ -42,21 +42,43 @@ EOF
 cat <<'EOF'> src/main/java/com/example/WebConfig.java
 package com.example;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableWebMvc
-public class WebConfig implements WebMvcConfigurer {
-    @Value("${cors.allowedOrigin:*}")
-    private String corsAllowedOrigin;
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**").allowedOrigins(corsAllowedOrigin);
-    }
+public class WebConfig {
+  @Value("${cors.allowedOrigins:*}")
+  public String[] allowedOrigins;
+  @Bean
+  public WebMvcConfigurer corsConfigurer() {
+    return new WebMvcConfigurer() {
+      @Override
+      public void addCorsMappings(CorsRegistry registry) {
+        registry
+            .addMapping("/**")
+            .allowedMethods("HEAD", "OPTIONS", "GET", "POST")
+            .allowedOrigins(allowedOrigins)
+            .allowCredentials(false)
+            .allowedHeaders(
+                "X-Requested-With",
+                "Origin",
+                "Content-Type",
+                "Accept",
+                "Authorization",
+                "Access-Control-Request-Method")
+            .exposedHeaders(
+                "Access-Control-Request-Headers",
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Headers")
+            .maxAge(3600L);
+      }
+    };
+  }
 }
 EOF
 ```
@@ -134,25 +156,15 @@ cat <<'EOF'> src/main/resources/logback.xml
 EOF
 ```
 ```
-podman run -it --rm --name builder \
-  -v $PWD:/workspace \
-  -w /workspace \
-  -v /tmp:/tmp \
-  -e GRADLE_USER_HOME=/tmp/build_cache/gradle \
-  public.ecr.aws/docker/library/openjdk:11-jdk \
-  sh -c './gradlew build'
-```
-```
-cat <<'EOF'> Dockerfile
 FROM public.ecr.aws/docker/library/openjdk:11-jdk AS builder
 WORKDIR workspace
+COPY . .
 ARG JAR_FILE=build/libs/*.jar
-#ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
-RUN java -Djarmode=layertools -jar app.jar extract
+RUN set -ex \
+    && ./gradlew build -i \
+    && java -Djarmode=layertools -jar $JAR_FILE extract
 
 FROM gcr.io/distroless/java:11
-#FROM public.ecr.aws/docker/library/openjdk:11-jre
 USER 999:0
 WORKDIR workspace
 COPY --from=builder workspace/dependencies/ ./
@@ -160,7 +172,6 @@ COPY --from=builder workspace/spring-boot-loader/ ./
 COPY --from=builder workspace/snapshot-dependencies/ ./
 COPY --from=builder workspace/application/ ./
 ENTRYPOINT ["/usr/bin/java", "org.springframework.boot.loader.JarLauncher"]
-EOF
 ```
 ```
 podman build -t app . --timestamp=0
@@ -169,6 +180,7 @@ podman run -it --rm -p 8080:8080 app
 
 curl -fsSL http://localhost:8080
 curl -fsSL http://localhost:8080/actuator/health | jq .
+curl -H 'Origin: https://cors.test.com' -I -f http://localhost:8080
 
 podman push app docker-archive:app.tar
 
