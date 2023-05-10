@@ -162,6 +162,7 @@ WORKDIR workspace
 COPY . .
 ARG JAR_FILE=build/libs/*.jar
 RUN set -ex \
+    && chmod +x gradlew \
     && ./gradlew build -i \
     && java -Djarmode=layertools -jar $JAR_FILE extract
 
