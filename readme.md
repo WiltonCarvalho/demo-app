@@ -156,6 +156,7 @@ cat <<'EOF'> src/main/resources/logback.xml
 EOF
 ```
 ```
+cat <<'EOF'> Dockerfile
 FROM public.ecr.aws/docker/library/openjdk:11-jdk AS builder
 WORKDIR workspace
 COPY . .
@@ -172,6 +173,7 @@ COPY --from=builder workspace/spring-boot-loader/ ./
 COPY --from=builder workspace/snapshot-dependencies/ ./
 COPY --from=builder workspace/application/ ./
 ENTRYPOINT ["/usr/bin/java", "org.springframework.boot.loader.JarLauncher"]
+EOF
 ```
 ```
 podman build -t app . --timestamp=0
