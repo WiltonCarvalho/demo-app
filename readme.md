@@ -83,17 +83,6 @@ public class WebConfig {
 EOF
 ```
 ```
-# Disable '*-plain.jar'
-cat <<'EOF'>> build.gradle
-jar {
-  enabled = false
-}
-bootJar {
-  enabled = true
-}
-EOF
-```
-```
 # Build Info
 cat <<'EOF'>> build.gradle
 def buildTime() {
@@ -120,7 +109,7 @@ springBoot {
 EOF
 ```
 ```
-cat <<'EOF'> src/main/resources/application.properties
+cat <<'EOF'>> src/main/resources/application.properties
 server.port=8080
 management.endpoints.web.exposure.include=info,health,prometheus
 EOF
@@ -163,7 +152,7 @@ COPY . .
 ARG JAR_FILE=build/libs/*.jar
 RUN set -ex \
     && chmod +x gradlew \
-    && ./gradlew build -i \
+    && ./gradlew build -i -x jar \
     && java -Djarmode=layertools -jar $JAR_FILE extract
 
 FROM gcr.io/distroless/java:11
