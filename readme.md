@@ -122,8 +122,9 @@ curl -s localhost:8081/actuator/prometheus
 ```
 ```
 # Run Demo App with CORS
-docker run -it --rm -e "cors.allowedOrigins=https://cors.allowed1.com,https://cors.allowed2.com" \
-  -p 8080:8080 -p 8081:8081 demo-app
+docker run -it --rm -p 8080:8080 -p 8081:8081 \
+  -e "cors.allowedOrigins=https://cors.allowed1.com,https://cors.allowed2.com" \
+  demo-app
 
 curl -H 'Origin: https://cors.allowed1.com' -i -f http://localhost:8080
 curl -H 'Origin: https://cors.allowed2.com' -i -f http://localhost:8080
