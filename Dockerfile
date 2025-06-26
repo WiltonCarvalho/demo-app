@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 # MySQL & Redis
 # docker run -it --rm --name mysql -e MYSQL_DATABASE=test -e MYSQL_ROOT_PASSWORD=test -p 3306:3306 mysql:lts
-# docker run -it --rm --name redis -p 6379:6379 redis:7
+# docker run -it --rm --name redis -p 6379:6379 redis:7-alpine
 
 # Build
 # docker build -t demo-app . --progress=plain
@@ -94,6 +94,7 @@ spring.datasource.username=root
 spring.datasource.password=test
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.data.redis.host=172.17.0.1
+logging.level.org.springframework.web=DEBUG
 EOF
 
 FROM eclipse-temurin:17-jdk AS builder
