@@ -1,6 +1,6 @@
 ### Windows
 ```
-curl.exe -fsSL https://start.spring.io/starter.tgz -d -d javaVersion=17 -d bootVersion=3.5.3 -d dependencies=web,actuator,prometheus -d version=1.0.0 -d packageName=com.example -d groupId=com.example -d artifactId=demo-app -d baseDir=demo-app -d type=gradle-project -o demo-app.tar.gz
+curl.exe -fsSL https://start.spring.io/starter.tgz -d javaVersion=17 -d bootVersion=3.5.3 -d dependencies=web,actuator,prometheus -d version=1.0.0 -d packageName=com.example -d groupId=com.example -d artifactId=demo-app -d baseDir=demo-app -d type=gradle-project -o demo-app.tar.gz
 tar -zxvf demo-app.tar.gz
 del demo-app.tar.gz
 ```
