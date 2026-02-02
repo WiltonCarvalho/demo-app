@@ -1,6 +1,6 @@
 ### Windows
 ```
-curl.exe -fsSL https://start.spring.io/starter.tgz -d dependencies=web,actuator,prometheus -d bootVersion=2.7.6 -d javaVersion=11 -d packageName=com.example -d groupId=com.example -d artifactId=demo-app -d baseDir=demo-app -d type=gradle-project -o demo-app.tar.gz
+curl.exe -fsSL https://start.spring.io/starter.tgz -d -d javaVersion=17 -d bootVersion=3.5.3 -d dependencies=web,actuator,prometheus -d version=1.0.0 -d packageName=com.example -d groupId=com.example -d artifactId=demo-app -d baseDir=demo-app -d type=gradle-project -o demo-app.tar.gz
 tar -zxvf demo-app.tar.gz
 del demo-app.tar.gz
 ```
@@ -8,7 +8,10 @@ del demo-app.tar.gz
 ### Linux
 ```
 curl -fsSL https://start.spring.io/starter.tgz \
+  -d javaVersion=17 \
+  -d bootVersion=3.5.3 \
   -d dependencies=web,actuator,prometheus \
+  -d version=1.0.0 \
   -d packageName=com.example \
   -d groupId=com.example \
   -d artifactId=demo-app \
@@ -88,24 +91,43 @@ EOF
 ```
 # Docker staged build with Spring Boot layers
 cat <<'EOF'> demo-app/Dockerfile
+# syntax=docker/dockerfile:1.4
 FROM eclipse-temurin:17-jdk AS builder
-WORKDIR workspace
-COPY . .
+WORKDIR /code
+COPY gradle gradle
+COPY build.gradle gradlew settings.gradle ./
+COPY src src
 ARG JAR_FILE=build/libs/*.jar
-ARG GRADLE_USER_HOME=/tmp/build_cache/gradle
 RUN --mount=type=cache,target=/tmp/build_cache/gradle \
     set -ex \
     && chmod +x gradlew \
-    && ./gradlew build -i -x jar \
-    && java -Djarmode=layertools -jar $JAR_FILE extract
+    && GRADLE_USER_HOME=/tmp/build_cache/gradle \
+    && PROJECT_NAME=$(grep "rootProject.name" settings.gradle | cut -d'=' -f2 | tr -d " '\"") \
+    && ./gradlew clean build -i --no-daemon -x jar \
+      --gradle-user-home $GRADLE_USER_HOME \
+      --project-cache-dir $GRADLE_USER_HOME/$PROJECT_NAME
+# RUN java -Djarmode=layertools -jar $JAR_FILE extract --destination extracted
+RUN java -Djarmode=tools -jar $JAR_FILE extract --layers --launcher --destination extracted
+
 FROM eclipse-temurin:17-jre
+#FROM gcr.io/distroless/java17
 USER 999:0
-WORKDIR workspace
-COPY --from=builder workspace/dependencies/ ./
-COPY --from=builder workspace/spring-boot-loader/ ./
-COPY --from=builder workspace/snapshot-dependencies/ ./
-COPY --from=builder workspace/application/ ./
+WORKDIR /app
+COPY --from=builder /code/extracted/dependencies/ ./
+COPY --from=builder /code/extracted/spring-boot-loader/ ./
+COPY --from=builder /code/extracted/snapshot-dependencies/ ./
+COPY --from=builder /code/extracted/application/ ./
+# ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENV spring_backgroundpreinitializer_ignore="true"
+ENV TZ="America/Sao_Paulo"
+ENV server_port="8080"
+ENV management_server_port="8081"
+ENV management_endpoints_enabledByDefault="false"
+ENV management_endpoint_health_enabled="true"
+ENV management_endpoint_info_enabled="true"
+ENV management_endpoint_prometheus_enabled="true"
+ENV management_endpoints_web_exposure_include="info,health,prometheus"
 EOF
 ```
 ```
