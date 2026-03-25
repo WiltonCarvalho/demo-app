@@ -1,6 +1,6 @@
 ### Windows
 ```
-curl.exe -fsSL https://start.spring.io/starter.tgz -d javaVersion=17 -d bootVersion=3.5.3 -d dependencies=web,actuator,prometheus -d version=1.0.0 -d packageName=com.example -d groupId=com.example -d artifactId=demo-app -d baseDir=demo-app -d type=gradle-project -o demo-app.tar.gz
+curl.exe -fsSL https://start.spring.io/starter.tgz -d javaVersion=17 -d bootVersion=3.5.12 -d dependencies=web,actuator,prometheus -d version=1.0.0 -d packageName=com.example -d groupId=com.example -d artifactId=demo-app -d baseDir=demo-app -d type=gradle-project -d configurationFileFormat=properties -o demo-app.tar.gz
 tar -zxvf demo-app.tar.gz
 del demo-app.tar.gz
 ```
@@ -9,13 +9,14 @@ del demo-app.tar.gz
 ```
 curl -fsSL https://start.spring.io/starter.tgz \
   -d javaVersion=17 \
-  -d bootVersion=3.5.3 \
+  -d bootVersion=3.5.12 \
   -d dependencies=web,actuator,prometheus \
   -d version=1.0.0 \
   -d packageName=com.example \
   -d groupId=com.example \
   -d artifactId=demo-app \
   -d baseDir=demo-app \
+  -d configurationFileFormat=properties \
   -d type=gradle-project | tar -xzvf -
 ```
 ```
@@ -86,6 +87,8 @@ cat <<'EOF'>> demo-app/src/main/resources/application.properties
 server.port=8080
 management.server.port=8081
 management.endpoints.web.exposure.include=info,health,prometheus
+management.endpoint.health.probes.enabled=true
+management.endpoint.health.showDetails=always
 EOF
 ```
 ```
@@ -101,8 +104,8 @@ ARG JAR_FILE=build/libs/*.jar
 RUN --mount=type=cache,target=/tmp/build_cache/gradle \
     set -ex \
     && chmod +x gradlew \
-    && GRADLE_USER_HOME=/tmp/build_cache/gradle \
-    && PROJECT_NAME=$(grep "rootProject.name" settings.gradle | cut -d'=' -f2 | tr -d " '\"") \
+    && export GRADLE_USER_HOME=/tmp/build_cache/gradle \
+    && export PROJECT_NAME=$(sed -n "s/rootProject.name *= *['\"]\(.*\)['\"]/\1/p" settings.gradle) \
     && ./gradlew clean build -i --no-daemon -x jar \
       --gradle-user-home $GRADLE_USER_HOME \
       --project-cache-dir $GRADLE_USER_HOME/$PROJECT_NAME
@@ -121,13 +124,6 @@ COPY --from=builder /code/extracted/application/ ./
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
 ENV spring_backgroundpreinitializer_ignore="true"
 ENV TZ="America/Sao_Paulo"
-ENV server_port="8080"
-ENV management_server_port="8081"
-ENV management_endpoints_enabledByDefault="false"
-ENV management_endpoint_health_enabled="true"
-ENV management_endpoint_info_enabled="true"
-ENV management_endpoint_prometheus_enabled="true"
-ENV management_endpoints_web_exposure_include="info,health,prometheus"
 EOF
 ```
 ```
