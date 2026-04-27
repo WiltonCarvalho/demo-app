@@ -22,3 +22,15 @@ ENTRYPOINT ["/usr/bin/java", "-cp", "/app/resources:/app/classes:/app/libs/*", "
 EOF
 ```
 ```
+./mvnw clean compile dependency:copy-dependencies -DoutputDirectory=target/dependency
+```
+```
+cat <<'EOF'> Dockerfile
+FROM gcr.io/distroless/java:11
+USER 999:0
+WORKDIR /app
+COPY target/dependency ./libs
+COPY target/classes ./classes
+ENTRYPOINT ["java", "-cp", "/app/classes:/app/libs/*", "com.yourpackage.Application"]
+EOF
+```
